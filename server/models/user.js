@@ -17,6 +17,24 @@ const userSchema = new Schema(
       type: String,
       required: true,
     },
+    course:[],
+  }
+);
+
+const adminSchema = new Schema(
+  {
+    name: {
+      type: String,
+      required: true,
+    },
+    email: {
+      type: String,
+      required: true,
+    },
+    password: {
+      type: String,
+      required: true,
+    },
   }
 );
 
@@ -57,5 +75,9 @@ const userSchema = new Schema(
 // });
 
 const User = mongoose.model('User', userSchema);
+const Admin = mongoose.model('Admin', adminSchema);
 
-export default User;
+
+export {
+  User,Admin
+};

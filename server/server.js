@@ -1,14 +1,17 @@
+// server.js
+
 import express from 'express';
 import dotenv from 'dotenv';
 import path from 'path';
 import colors from 'colors';
 import morgan from 'morgan';
-import Product from './models/product.js';
-import connectDB from './config/database.js';
-import productRoutes from './routes/productRoutes.js';
+// import connectDB from './config/database.js';
 import userRoutes from './routes/userRoutes.js';
-import orderRoutes from './routes/orderRoutes.js';
-import uploadRoutes from './routes/uploadRoutes.js';
+import courseRoutes from './routes/courseRoutes.js';
+import { ApolloServer } from 'apollo-server-express'; // Import ApolloServer
+import { typeDefs } from './graphql/schema.js'; // Import your GraphQL schema
+import { resolvers } from './graphql/resolver.js'; // Import your resolvers
+
 import cors  from 'cors';
 import { errorHandler, notFound } from './middleware/errorMiddleware.js';
 
@@ -16,36 +19,10 @@ dotenv.config();
 
 const app = express();
 
-// if (process.env.NODE_ENV == 'development') {
-//   app.use(morgan('dev'));
-// }
-
-app.use(express.json()); //json() is a built-in middleware function in Express. It parses incoming requests with JSON payloads and is based on body-parser.
+app.use(express.json()); 
 app.use(cors());
-app.use('/api/products', productRoutes);
 app.use('/api/users', userRoutes);
-app.use('/api/orders', orderRoutes);
-// app.use('/api/upload', uploadRoutes);
-
-
-// app.use('/api/config/paypal', (req, res) =>
-//   res.send(process.env.PAYPAL_CLIENT_ID)
-// );
-
-// const __dirname = path.resolve(); //since we're using es modules syntax
-// app.use('/uploads', express.static(path.join(__dirname, '/uploads')));
-
-// if (process.env.NODE_ENV === 'production') {
-//   app.use(express.static(path.join(__dirname, 'client/build')));
-
-//   app.get('*', (req, res) =>
-//     res.sendFile(path.resolve(__dirname, 'client', 'build', 'index.html'))
-//   );
-// } else {
-//   app.get('/', (req, res) => {
-//     res.send('Api is running...');
-//   });
-// }
+app.use('/api/courses',courseRoutes);
 
 app.get('/', (req, res) => {
       res.send('Api is running...');
@@ -53,13 +30,24 @@ app.get('/', (req, res) => {
 app.use(notFound);
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 7100;
+const PORT =  7200;
 
- app.listen(
-  PORT,
-  connectDB,
-  console.log(
-    `Server running in ${process.env.NODE_ENV} mode on port ${PORT}`.yellow
-      .bold
-  )
-);
+// Create an instance of ApolloServer
+const server = new ApolloServer({
+  typeDefs, // Your GraphQL schema
+  resolvers, // Your resolvers
+});
+
+// Start the Apollo Server
+server.start().then(() => {
+  // Apply Apollo middleware to Express app
+  server.applyMiddleware({ app });
+  
+  // Start Express server
+  app.listen(PORT, () =>
+    console.log(`Server running on port ${PORT}`.yellow.bold)
+  );
+});
+
+// Connect to MongoDB
+// connectDB();
